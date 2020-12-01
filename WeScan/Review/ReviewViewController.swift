@@ -37,6 +37,7 @@ final class ReviewViewController: UIViewController {
         let image = UIImage(systemName: "rotate.right", named: "rotate", in: Bundle(for: ScannerViewController.self), compatibleWith: nil)
         let button = UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(rotateImage))
         button.tintColor = .white
+        button.accessibilityElementsHidden = true
         return button
     }()
     

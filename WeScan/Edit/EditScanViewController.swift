@@ -31,16 +31,20 @@ final class EditScanViewController: UIViewController {
     }()
     
     private lazy var nextButton: UIBarButtonItem = {
-        let title = NSLocalizedString("wescan.edit.button.next", tableName: nil, bundle: Bundle(for: EditScanViewController.self), value: "Next", comment: "A generic next button")
+        let title = NSLocalizedString("wescan.edit.button.next", tableName: nil, bundle: Bundle(for: EditScanViewController.self), value: "戻る", comment: "A generic next button")
         let button = UIBarButtonItem(title: title, style: .plain, target: self, action: #selector(pushReviewController))
-        button.tintColor = navigationController?.navigationBar.tintColor
+       // button.tintColor = navigationController?.navigationBar.tintColor
+        button.tintColor = UIColor(hex: "4284e4")
+        //ここをfinButtonにチェンジ
+        
+        
         return button
     }()
     
     private lazy var cancelButton: UIBarButtonItem = {
-        let title = NSLocalizedString("wescan.scanning.cancel", tableName: nil, bundle: Bundle(for: EditScanViewController.self), value: "Cancel", comment: "A generic cancel button")
+        let title = NSLocalizedString("wescan.scanning.cancel", tableName: nil, bundle: Bundle(for: EditScanViewController.self), value: "キャンセル", comment: "A generic cancel button")
         let button = UIBarButtonItem(title: title, style: .plain, target: self, action: #selector(cancelButtonTapped))
-        button.tintColor = navigationController?.navigationBar.tintColor
+        button.tintColor = UIColor(hex: "4284e4")
         return button
     }()
     
@@ -72,7 +76,7 @@ final class EditScanViewController: UIViewController {
         
         setupViews()
         setupConstraints()
-        title = NSLocalizedString("wescan.edit.title", tableName: nil, bundle: Bundle(for: EditScanViewController.self), value: "Edit Scan", comment: "The title of the EditScanViewController")
+        title = NSLocalizedString("wescan.edit.title", tableName: nil, bundle: Bundle(for: EditScanViewController.self), value: "", comment: "The title of the EditScanViewController")
         navigationItem.rightBarButtonItem = nextButton
         if let firstVC = self.navigationController?.viewControllers.first, firstVC == self {
             navigationItem.leftBarButtonItem = cancelButton
@@ -92,6 +96,17 @@ final class EditScanViewController: UIViewController {
         adjustQuadViewConstraints()
         displayQuad()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.navigationBar.barTintColor = UIColor(hex: "2d383c")
+       // self.navigationController?.navigationBar.tintColor = .white
+        
+       
+    }
+  
+
+
     
     override public func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -168,8 +183,21 @@ final class EditScanViewController: UIViewController {
         
         let results = ImageScannerResults(detectedRectangle: scaledQuad, originalScan: ImageScannerScan(image: image), croppedScan: ImageScannerScan(image: croppedImage), enhancedScan: enhancedScan)
         
-        let reviewViewController = ReviewViewController(results: results)
-        navigationController?.pushViewController(reviewViewController, animated: true)
+        
+        //ここで編集画面に遷移
+        //let reviewViewController = ReviewViewController(results: results)
+        //navigationController?.pushViewController(reviewViewController, animated: true)
+        
+        guard let imageScannerController = navigationController as? ImageScannerController else { return }
+        
+        var newResults = results
+        let rotationAngle = Measurement<UnitAngle>(value: 0, unit: .degrees)
+        let isCurrentlyDisplayingEnhancedImage = false
+        newResults.croppedScan.rotate(by: rotationAngle)
+        newResults.enhancedScan?.rotate(by: rotationAngle)
+        newResults.doesUserPreferEnhancedScan = isCurrentlyDisplayingEnhancedImage
+        imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFinishScanningWithResults: newResults)
+    
     }
     
     private func displayQuad() {
@@ -203,4 +231,14 @@ final class EditScanViewController: UIViewController {
         return quad
     }
     
+}
+
+extension UIColor {
+    convenience init(hex: String, alpha: CGFloat = 1.0) {
+        let v = Int("000000" + hex, radix: 16) ?? 0
+        let r = CGFloat(v / Int(powf(256, 2)) % 256) / 255
+        let g = CGFloat(v / Int(powf(256, 1)) % 256) / 255
+        let b = CGFloat(v / Int(powf(256, 0)) % 256) / 255
+        self.init(red: r, green: g, blue: b, alpha: min(max(alpha, 0), 1))
+    }
 }
